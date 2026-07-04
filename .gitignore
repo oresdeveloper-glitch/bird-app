@@ -1,0 +1,60 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+.venv-1/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Model Files (too large - download separately)
+*.keras
+*.h5
+*.pt
+trained_models/
+yolov8n.pt
+
+# Dataset
+dataset/
+
+# Cache & Logs
+.cache/
+*.log
+instance/
+.DS_Store
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Evaluation Results (regenerable)
+evaluation_results/
+trained_models_evaluation.json
+confusion_matrix*.json
+pickle_dis.txt
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+.ipynb_checkpoints/

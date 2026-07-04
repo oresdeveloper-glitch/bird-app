@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-3">Confusion Matrix (NIPE)</h2>
+
+  {% if error %}
+    <div class="alert alert-warning">{{ error }}</div>
+  {% endif %}
+
+  {% if data %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-3">
+          <div><strong>Processed:</strong> {{ data.meta.processed }}</div>
+          <div><strong>Skipped (no ground truth folder):</strong> {{ data.meta.skipped_no_truth }}</div>
+          <div><strong>Normalize:</strong> {{ data.meta.normalize }}</div>
+          <div><strong>Labels:</strong> {{ data.meta.labels_count }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Top misclassifications</h5>
+        <div style="overflow:auto; max-height: 320px;">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>True</th>
+                <th>Pred</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in data.top_mis %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ data.id_to_name.get(item.true, item.true) }}</td>
+                  <td>{{ data.id_to_name.get(item.pred, item.pred) }}</td>
+                  <td>{{ item.count }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Matrix (JSON)</h5>
+        <pre style="white-space: pre-wrap; word-break: break-word; max-height: 420px; overflow:auto;" class="mb-0">{{ data.matrix_json | tojson(indent=2) }}</pre>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+

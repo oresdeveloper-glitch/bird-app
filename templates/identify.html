@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+{% block title %}AI Bird Image Recognition | Tanzania Bird Finder{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <span class="eyebrow">Computer vision</span>
+  <h1>AI bird image recognition</h1>
+  <p>Upload a real bird photo. The system preprocesses the image, extracts visual features, and predicts against Tanzania-only bird records.</p>
+</section>
+
+<section class="section ai-layout">
+  <div class="upload-multi-source">
+    <div class="upload-source-card">
+      <h2 class="source-title">1) Choose a photo or capture a frame</h2>
+      <p class="source-subtitle">Upload (desktop) or capture from your camera (mobile). Review & confirm in the same area.</p>
+
+      <form id="identify-form" class="upload-card" method="post" enctype="multipart/form-data">
+        <input id="bird-image-input" type="file" name="bird_image" accept="image/jpeg,image/png,image/webp" required style="display:none;" />
+
+        <div class="identify-workflow">
+          <div class="workflow-column">
+            <div class="upload-drop">
+              <i data-lucide="image-up"></i>
+              <strong>Upload bird image</strong>
+              <span>JPG, PNG, or WEBP. Maximum 8 MB.</span>
+              <button id="choose-file-btn" class="button secondary" type="button">
+                <i data-lucide="search"></i>
+                Choose file
+              </button>
+              <p id="file-hint" class="hint" style="margin-top:10px;">Or use camera capture in the panel to the right.</p>
+            </div>
+
+            <div class="ai-steps">
+              <span><strong>1</strong> Validate upload</span>
+              <span><strong>2</strong> Resize and normalize</span>
+              <span><strong>3</strong> Extract visual features</span>
+              <span><strong>4</strong> Match Tanzania bird species</span>
+            </div>
+
+            <div class="camera-section" style="margin-top:18px;">
+              <div class="section-heading compact-heading">
+                <span class="eyebrow">2) Camera</span>
+                <h2>Capture</h2>
+              </div>
+
+              <div class="camera-grid">
+                <div class="camera-left">
+                  <div class="camera-viewport">
+                    <video id="camera-video" autoplay playsinline muted></video>
+                  </div>
+                  <div id="camera-error" class="error" role="alert" style="display:none;"></div>
+
+                  <div class="camera-actions">
+                    <button id="start-camera-btn" class="button secondary" type="button">
+                      <i data-lucide="navigation"></i>
+                      Start camera
+                    </button>
+                    <button id="stop-camera-btn" class="button secondary" type="button" disabled>
+                      <i data-lucide="x"></i>
+                      Stop
+                    </button>
+                    <button id="capture-btn" class="button primary" type="button" disabled>
+                      <i data-lucide="scan-search"></i>
+                      Capture photo
+                    </button>
+                  </div>
+                  <p class="hint">Tip: Hold steady, keep the bird centered, and ensure good light.</p>
+                </div>
+
+                <div class="camera-right">
+                  <div class="review-card">
+                    <div class="section-heading compact-heading">
+                      <span class="eyebrow">3) Review</span>
+                      <h2>Confirm photo</h2>
+                    </div>
+
+                    <div class="review-media">
+                      <img id="preview-image" src="{{ url_for('static', filename='img/placeholder.svg') }}" alt="Preview" />
+                    </div>
+
+                    <div class="review-actions">
+                      <button id="confirm-btn" class="button primary full" type="button" disabled>
+                        <i data-lucide="scan-search"></i>
+                        Confirm & Analyze
+                      </button>
+                      <p id="review-hint" class="hint" style="margin-top:10px;">Upload a file or capture a frame to preview it here.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  {% if result %}
+    <div class="results-stack">
+    <article class="prediction-card">
+      <div class="prediction-media">
+        <img src="{{ upload_url }}" alt="Uploaded bird image">
+        <span>{{ result.model_name }}</span>
+      </div>
+      <div class="prediction-body">
+        <span class="status">{{ result.confidence }}% confidence</span>
+        <h2>{{ result.bird.common_name }}</h2>
+        <p class="latin">{{ result.bird.scientific_name }}</p>
+        <p>{{ result.bird.description }}</p>
+
+        {% if result.gradcam_url %}
+        <div class="xai-section">
+          <div class="section-heading compact-heading">
+            <span class="eyebrow">Explainable AI</span>
+            <h2>Why this prediction?</h2>
+          </div>
+          <div class="gradcam-grid">
+            <div class="gradcam-card">
+              <img src="{{ upload_url }}" alt="Original">
+              <span>Uploaded image</span>
+            </div>
+            <div class="gradcam-card">
+              <img src="{{ result.gradcam_url }}" alt="Grad-CAM heatmap">
+              <span>AI attention (Grad-CAM)</span>
+            </div>
+          </div>
+          <p class="hint">The highlighted regions (red = high attention) show which visual features the model focused on — wing shape, beak, feather patterns, or body contours.</p>
+        </div>
+        {% endif %}
+
+        {% if result.detection_url %}
+        <div class="xai-section">
+          <div class="section-heading compact-heading">
+            <span class="eyebrow">Localization</span>
+            <h2>YOLOv8 detected regions</h2>
+          </div>
+          <div class="gradcam-grid">
+            <div class="gradcam-card">
+              <img src="{{ result.detection_url }}" alt="YOLOv8 detection overlay">
+              <span>Localization overlay</span>
+            </div>
+          </div>
+          <p class="hint">Detected {{ result.detections|length }} region{{ 's' if result.detections|length != 1 else '' }} with YOLOv8 object localization.</p>
+        </div>
+        {% endif %}
+
+        <div class="fact-grid">
+          <div><i data-lucide="leaf"></i><span>Habitat</span><strong>{{ result.bird.habitat.name }}</strong></div>
+          <div><i data-lucide="shield-check"></i><span>Status</span><strong>{{ result.bird.conservation_status }}</strong></div>
+        </div>
+
+        {% if result.exif and result.exif.gps %}
+        <div class="exif-card">
+          <i data-lucide="map-pin"></i>
+          <span>GPS: {{ result.exif.gps.lat }}, {{ result.exif.gps.lon }}</span>
+          {% if result.exif.timestamp %}<span>Captured: {{ result.exif.timestamp }}</span>{% endif %}
+          {% if result.exif.camera %}<span>Device: {{ result.exif.camera.get('make','') }} {{ result.exif.camera.get('model','') }}</span>{% endif %}
+          {% if result.sighting_created %}<span class="badge-green">Sighted! Added to biodiversity map.</span>{% endif %}
+        </div>
+        {% endif %}
+
+        <div class="section-heading compact-heading">
+          <span class="eyebrow">Found in Tanzania</span>
+          <h2>Linked parks</h2>
+        </div>
+        <div class="stack-list">
+          {% for park in result.parks %}
+            <a class="park-card compact" href="{{ url_for('park_detail', park_id=park.id) }}">
+              <img src="{{ park.image_url }}" alt="{{ park.name }}">
+              <div><strong>{{ park.name }}</strong><span>{{ park.region }} | {{ park.habitat_type }}</span></div>
+            </a>
+          {% else %}
+            <p class="empty-state">No linked park records yet for this species.</p>
+          {% endfor %}
+        </div>
+        <div class="review-actions" style="margin-top:16px;">
+        <form method="post" action="{{ url_for('favorite', item_type='bird', item_id=result.bird.id) }}">
+          <button class="button secondary full" type="submit"><i data-lucide="bookmark"></i>Save identified bird</button>
+        </form>
+        {% if current_user and current_user.role in ('contributor', 'admin') %}
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <form method="post" action="{{ url_for('verify_prediction', prediction_id=result.record.id) }}">
+            <input type="hidden" name="action" value="verify">
+            <button class="button primary" type="submit"><i data-lucide="check-circle"></i>Verify</button>
+          </form>
+          <form method="post" action="{{ url_for('verify_prediction', prediction_id=result.record.id) }}">
+            <input type="hidden" name="action" value="flag">
+            <button class="button secondary" type="submit"><i data-lucide="flag"></i>Flag</button>
+          </form>
+        </div>
+        {% endif %}
+        </div>
+      </div>
+    </article>
+
+    <section class="alternatives">
+      <div class="section-heading">
+        <span class="eyebrow">Model alternatives</span>
+        <h2>Next closest Tanzania matches</h2>
+      </div>
+      <div class="grid card-grid">
+        {% for item in result.alternatives %}
+          {% set bird = item.bird %}
+          <article class="species-card">
+            <a href="{{ url_for('species_detail', bird_id=bird.id) }}">
+              <img src="{{ bird.image_url }}" alt="{{ bird.common_name }}">
+              <div class="card-body">
+                <span class="status">{{ item.confidence }}% confidence</span>
+                <h2>{{ bird.common_name }}</h2>
+                <p class="latin">{{ bird.scientific_name }}</p>
+              </div>
+            </a>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+    </div>
+  {% else %}
+    <aside class="ai-info">
+      <i data-lucide="cpu"></i>
+      <h2>Tanzania-only AI boundary</h2>
+      <p>The recognition module compares uploads only against birds in the Tanzania database. It does not return non-Tanzanian park or species records.</p>
+      <p>For production, connect a fine-tuned CNN or TensorFlow Lite model trained on validated Tanzania bird images. This implementation already follows the same upload, preprocessing, feature extraction, prediction, and result workflow.</p>
+    </aside>
+  {% endif %}
+</section>
+
+<script>
+  (function () {
+    const form = document.getElementById('identify-form');
+    const fileInput = document.getElementById('bird-image-input');
+    const chooseFileBtn = document.getElementById('choose-file-btn');
+    const startCameraBtn = document.getElementById('start-camera-btn');
+    const stopCameraBtn = document.getElementById('stop-camera-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    const confirmBtn = document.getElementById('confirm-btn');
+    const previewImage = document.getElementById('preview-image');
+    const video = document.getElementById('camera-video');
+    const cameraError = document.getElementById('camera-error');
+
+    let stream = null;
+
+    function setError(msg) {
+      if (!cameraError) return;
+      if (!msg) {
+        cameraError.style.display = 'none';
+        cameraError.textContent = '';
+        return;
+      }
+      cameraError.style.display = 'block';
+      cameraError.textContent = msg;
+    }
+
+    function setConfirmEnabled(enabled) {
+      if (!confirmBtn) return;
+      confirmBtn.disabled = !enabled;
+    }
+
+    function setCaptureEnabled(enabled) {
+      if (!captureBtn) return;
+      captureBtn.disabled = !enabled;
+    }
+
+    function setStopEnabled(enabled) {
+      if (!stopCameraBtn) return;
+      stopCameraBtn.disabled = !enabled;
+    }
+
+    function updatePreviewFromFile(file) {
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      previewImage.src = url;
+
+      // Enable confirm after a file is selected (upload path uses normal form POST)
+      setConfirmEnabled(true);
+
+      // If user confirms, we will submit the form.
+      // Keep objectURL for preview only; memory leak is tiny for this flow.
+    }
+
+    chooseFileBtn?.addEventListener('click', () => {
+      fileInput?.click();
+    });
+
+    fileInput?.addEventListener('change', () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      // Basic client-side type check
+      const ok = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || /\.(jpe?g|png|webp)$/i.test(file.name);
+      if (!ok) {
+        setError('Please choose a JPG, PNG, or WEBP image.');
+        setConfirmEnabled(false);
+        fileInput.value = '';
+        previewImage.src = '{{ url_for("static", filename="img/placeholder.svg") }}';
+
+
+        return;
+      }
+
+      setError('');
+      updatePreviewFromFile(file);
+
+      // Submit on confirm click (prevents accidental submits without preview)
+    });
+
+    function isCameraSupported() {
+      return !!(
+        (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) ||
+        navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia
+      );
+    }
+
+    function applyCameraFallbackUI() {
+      // Don't preemptively disable camera UI—let the actual getUserMedia call handle errors.
+      // This allows for better error messaging and avoids false negatives.
+      // Only show persistent error if camera is definitely not supported.
+      const supported = isCameraSupported();
+      if (!supported) {
+        if (startCameraBtn) startCameraBtn.disabled = true;
+        if (cameraError) {
+          cameraError.style.display = 'block';
+          cameraError.textContent = 'Camera access is not available in your browser. Please use Upload instead.';
+        }
+      }
+    }
+
+    async function startCamera() {
+      setError('');
+      try {
+        // Try modern API first
+        let mediaStream;
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' }, 
+            audio: false 
+          });
+        } else if (navigator.getUserMedia) {
+          // Fallback for older browsers
+          mediaStream = await new Promise((resolve, reject) => {
+            navigator.getUserMedia({ video: true, audio: false }, resolve, reject);
+          });
+        } else {
+          throw new Error('Camera API not supported');
+        }
+
+        stream = mediaStream;
+        if (video) {
+          video.srcObject = stream;
+          await video.play();
+        }
+        if (startCameraBtn) startCameraBtn.disabled = true;
+        setStopEnabled(true);
+        setCaptureEnabled(true);
+      } catch (e) {
+        console.error('Camera error:', e);
+        const isHttp = window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        
+        let msg = 'Could not access camera. ';
+        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+          msg += 'Camera permission denied. Check browser permissions and try again.';
+        } else if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') {
+          msg += 'No camera device found.';
+        } else if (e.name === 'NotSupportedError' || e.name === 'SecurityError') {
+          msg += isHttp 
+            ? 'Camera requires HTTPS on mobile. Use the HTTPS link from terminal or switch to Upload.'
+            : 'Camera not supported in this context.';
+        } else {
+          msg += 'Use Upload instead, or check browser settings.';
+        }
+        setError(msg);
+      }
+    }
+
+    function stopCamera() {
+      try {
+        if (stream) {
+          stream.getTracks().forEach((t) => t.stop());
+        }
+      } finally {
+        stream = null;
+        if (video) video.srcObject = null;
+        startCameraBtn && (startCameraBtn.disabled = false);
+        setStopEnabled(false);
+        setCaptureEnabled(false);
+      }
+    }
+
+    startCameraBtn?.addEventListener('click', startCamera);
+    stopCameraBtn?.addEventListener('click', stopCamera);
+
+    function dataURLToFile(dataUrl, filename) {
+      const arr = dataUrl.split(',');
+      const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) u8arr[n] = bstr.charCodeAt(n);
+      return new File([u8arr], filename, { type: mime });
+    }
+
+    captureBtn?.addEventListener('click', async () => {
+      setError('');
+      if (!video || !video.videoWidth || !video.videoHeight) {
+        setError('Camera is not ready yet. Try again in a moment.');
+        return;
+      }
+
+      // Capture current frame to canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert to Blob
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setError('Could not capture photo. Please try again.');
+          return;
+        }
+
+        // Show preview
+        const blobUrl = URL.createObjectURL(blob);
+        previewImage.src = blobUrl;
+
+        // Put blob into hidden file input via DataTransfer
+        const file = new File([blob], `captured-bird-${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+
+        setConfirmEnabled(true);
+      }, 'image/jpeg', 0.88);
+    });
+
+    confirmBtn?.addEventListener('click', () => {
+      // For both upload and capture, we submit the same form to /identify.
+      if (!fileInput.files || !fileInput.files.length) {
+        setError('Please select or capture a photo first.');
+        return;
+      }
+
+      setError('');
+      form.submit();
+    });
+
+    // Initial state: require preview before enabling confirm
+    applyCameraFallbackUI();
+    setConfirmEnabled(false);
+    setCaptureEnabled(false);
+    setStopEnabled(false);
+  })();
+</script>
+{% endblock %}
+
