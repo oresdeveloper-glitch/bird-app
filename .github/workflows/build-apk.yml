@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile-app
     steps:
       - uses: actions/checkout@v4
 
@@ -23,30 +20,22 @@ jobs:
         with:
           node-version: 20
 
-      - name: Set up Android SDK
-        run: |
-          SDK=/usr/local/lib/android/sdk
-          echo "sdk.dir=$SDK" > android/local.properties
-          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$SDK" >> $GITHUB_ENV
-          yes | $SDK/cmdline-tools/latest/bin/sdkmanager --licenses
-          $SDK/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: android-actions/setup-android@v3
 
-      - name: Install npm deps
+      - name: Write local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > mobile-app/android/local.properties
+
+      - name: Install deps
+        working-directory: mobile-app
         run: npm ci
 
       - name: Build APK
         working-directory: mobile-app/android
         run: |
-          echo "=== Env ==="
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "JAVA_HOME=$JAVA_HOME"
-          java -version 2>&1
-          echo "=== local.properties ==="
-          cat local.properties
-          echo "=== SDK platforms ==="
-          ls -la $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms dir"
-          ls -la $ANDROID_HOME/build-tools/ 2>/dev/null || echo "No build-tools dir"
-          echo "=== Building ==="
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: birdfinder-apk
+          path: mobile-app/android/app/build/outputs/apk/debug/app-debug.apk
