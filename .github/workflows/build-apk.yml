@@ -28,15 +28,25 @@ jobs:
       - name: Write local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > mobile-app/android/local.properties
 
-      - uses: gradle/actions/setup-gradle@v4
-
       - name: Install deps
         working-directory: mobile-app
         run: npm ci
 
+      - name: Check Java
+        working-directory: mobile-app/android
+        run: java -version
+
+      - name: Make gradlew executable
+        working-directory: mobile-app/android
+        run: chmod +x gradlew
+
+      - name: Check gradlew version
+        working-directory: mobile-app/android
+        run: ./gradlew --version
+
       - name: Build APK
         working-directory: mobile-app/android
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
