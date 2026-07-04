@@ -32,6 +32,10 @@ jobs:
         working-directory: mobile-app
         run: npm ci
 
+      - name: Sync Capacitor
+        working-directory: mobile-app
+        run: npx cap sync android
+
       - name: Build APK
         working-directory: mobile-app/android
         run: |
