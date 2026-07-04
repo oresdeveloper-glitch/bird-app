@@ -1,4 +1,4 @@
-name: Deploy to Railway
+name: Deploy to Hugging Face Spaces
 
 on:
   push:
@@ -9,9 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: railwayapp/actions/setup@v2
         with:
-          project: ${{ secrets.RAILWAY_PROJECT }}
-      - run: railway up --service ${{ secrets.RAILWAY_SERVICE || '' }} --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          fetch-depth: 0
+
+      - name: Push to Hugging Face Space
+        run: |
+          git remote add hf https://ORRESYDEVELOPER11:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/ORRESYDEVELOPER11/bird-app
+          git push hf master:main --force
