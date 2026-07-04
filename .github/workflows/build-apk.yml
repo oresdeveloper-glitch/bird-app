@@ -36,7 +36,15 @@ jobs:
         working-directory: mobile-app/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace > $GITHUB_WORKSPACE/build.log 2>&1 || true
+
+      - name: Read build log
+        run: cat build.log | tail -100
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
 
       - uses: actions/upload-artifact@v4
         with:
