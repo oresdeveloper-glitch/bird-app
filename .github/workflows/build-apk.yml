@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-app
     steps:
       - uses: actions/checkout@v4
 
@@ -20,22 +23,29 @@ jobs:
         with:
           node-version: 20
 
-      - name: Accept Android SDK licenses
+      - name: Set up Android SDK
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
-          echo "sdk.dir=/usr/local/lib/android/sdk" > mobile-app/android/local.properties
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses 2>&1 | tail -3
-          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" 2>&1 | tail -5
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>&1 | tail -3
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" 2>&1 | tail -5
 
-      - name: Install npm dependencies
-        working-directory: mobile-app
+      - name: Install dependencies
         run: npm ci
 
       - name: Sync Capacitor Android
-        working-directory: mobile-app
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: npx cap sync android
 
       - name: Build APK
         working-directory: mobile-app/android
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
