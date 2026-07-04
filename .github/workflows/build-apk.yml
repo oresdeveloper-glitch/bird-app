@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile-app
     steps:
       - uses: actions/checkout@v4
 
@@ -23,22 +20,38 @@ jobs:
         with:
           node-version: 20
 
-      - name: Set up Android SDK
+      - name: Set up Android SDK and local.properties
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" > /dev/null 2>&1 || true
+          SDK="/usr/local/lib/android/sdk"
+          if [ ! -d "$SDK" ]; then
+            SDK="$ANDROID_HOME"
+          fi
+          if [ ! -d "$SDK" ]; then
+            echo "Android SDK not found, installing..."
+            mkdir -p ~/android-sdk/cmdline-tools
+            cd ~/android-sdk/cmdline-tools
+            curl -sL -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+            unzip -q cmdline-tools.zip
+            mv cmdline-tools latest
+            SDK=~/android-sdk
+          fi
+          echo "sdk.dir=$SDK" > mobile-app/android/local.properties
+          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$SDK" >> $GITHUB_ENV
+          yes | $SDK/cmdline-tools/latest/bin/sdkmanager --licenses 2>&1 | tail -3
+          $SDK/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" 2>&1 | tail -5
 
-      - name: Install dependencies
+      - name: Install npm dependencies
+        working-directory: mobile-app
         run: npm ci
 
       - name: Sync Capacitor Android
+        working-directory: mobile-app
         run: npx cap sync android
 
       - name: Build APK
+        working-directory: mobile-app/android
         run: |
-          cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
