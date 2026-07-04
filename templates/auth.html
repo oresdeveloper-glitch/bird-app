@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Login' if mode == 'login' else 'Register' }} | Tanzania Bird Finder{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div>
+    <span class="eyebrow">Secure account</span>
+    <h1>{{ 'Welcome back' if mode == 'login' else 'Create your explorer account' }}</h1>
+    <p>Save favorite birds and parks, bookmark locations, track visited places, and add park reviews.</p>
+  </div>
+  <form class="auth-card" method="post">
+    {% if mode == 'register' %}
+      <label>Name<input name="name" required placeholder="Your name"></label>
+    {% endif %}
+    <label>Email<input type="email" name="email" required placeholder="you@example.com"></label>
+    <label>Password<input type="password" name="password" required minlength="6" placeholder="Minimum 6 characters"></label>
+    <button class="button primary full" type="submit">{{ 'Login' if mode == 'login' else 'Register' }}</button>
+    {% if mode == 'login' %}
+      <p>New here? <a href="{{ url_for('register') }}">Create an account</a></p>
+    {% else %}
+      <p>Already registered? <a href="{{ url_for('login') }}">Login</a></p>
+    {% endif %}
+  </form>
+</section>
+{% endblock %}
