@@ -20,26 +20,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Set up Android SDK and local.properties
+      - name: Accept Android SDK licenses
         run: |
-          SDK="/usr/local/lib/android/sdk"
-          if [ ! -d "$SDK" ]; then
-            SDK="$ANDROID_HOME"
-          fi
-          if [ ! -d "$SDK" ]; then
-            echo "Android SDK not found, installing..."
-            mkdir -p ~/android-sdk/cmdline-tools
-            cd ~/android-sdk/cmdline-tools
-            curl -sL -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-            unzip -q cmdline-tools.zip
-            mv cmdline-tools latest
-            SDK=~/android-sdk
-          fi
-          echo "sdk.dir=$SDK" > mobile-app/android/local.properties
-          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$SDK" >> $GITHUB_ENV
-          yes | $SDK/cmdline-tools/latest/bin/sdkmanager --licenses 2>&1 | tail -3
-          $SDK/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" 2>&1 | tail -5
+          echo "sdk.dir=/usr/local/lib/android/sdk" > mobile-app/android/local.properties
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses 2>&1 | tail -3
+          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" 2>&1 | tail -5
 
       - name: Install npm dependencies
         working-directory: mobile-app
