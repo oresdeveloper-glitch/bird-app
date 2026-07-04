@@ -4,6 +4,7 @@ __pycache__/
 venv/
 .env
 *.pkl
+!reference_embeddings.pkl
 *.pkl.tmp
 server.log
 start.bat

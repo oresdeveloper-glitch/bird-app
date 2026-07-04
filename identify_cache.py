@@ -15,10 +15,7 @@ class ReferenceEmbeddingCache:
 
 
 def _cache_path(project_root: str) -> str:
-    # store in a project-local folder to avoid polluting static/ uploads/
-    cache_dir = os.path.join(project_root, ".cache")
-    os.makedirs(cache_dir, exist_ok=True)
-    return os.path.join(cache_dir, "reference_embeddings.pkl")
+    return os.path.join(project_root, "reference_embeddings.pkl")
 
 
 def load_reference_cache(project_root: str, expected_version: str):

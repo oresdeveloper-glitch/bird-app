@@ -138,10 +138,10 @@ def identify():
         # --- Grad-CAM explainable AI ---
         gradcam_url = None
         ref_emb = getattr(app, "reference_embeddings", None)
-        if ref_emb and bird.id in ref_emb:
+        if ref_emb and bird.common_name in ref_emb:
             gradcam_name = f"gradcam-{output_name}"
             gradcam_path = os.path.join(UPLOAD_PATH, gradcam_name)
-            best_ref = ref_emb[bird.id]
+            best_ref = ref_emb[bird.common_name]
             if best_ref.ndim == 2:
                 best_ref = best_ref[0]
             gradcam_result = generate_gradcam_heatmap(
@@ -739,7 +739,7 @@ def seed_data():
 # Precompute + cache reference embeddings for performance.
 from identify_cache import ReferenceEmbeddingCache, load_reference_cache, save_reference_cache
 
-REFERENCE_EMBEDDINGS_VERSION = "v3"
+REFERENCE_EMBEDDINGS_VERSION = "v4"
 
 with app.app_context():
     db.create_all()
@@ -749,9 +749,9 @@ with app.app_context():
     birds_for_cache = Bird.query.all()
 
     if cache is None:
-        embeddings_by_id, model_name_used = precompute_reference_embeddings(birds_for_cache, PROJECT_ROOT, verbose=False)
+        embeddings_by_name, model_name_used = precompute_reference_embeddings(birds_for_cache, PROJECT_ROOT, verbose=False)
         cache = ReferenceEmbeddingCache(
-            embeddings_by_bird_id=embeddings_by_id,
+            embeddings_by_bird_id=embeddings_by_name,
             model_name=model_name_used,
             version=REFERENCE_EMBEDDINGS_VERSION,
         )

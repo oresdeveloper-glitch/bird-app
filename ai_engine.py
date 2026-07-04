@@ -204,7 +204,7 @@ def _image_url_to_path(image_url, project_root):
 
 
 def precompute_reference_embeddings(birds, project_root, verbose=False):
-    embeddings_by_bird_id = {}
+    embeddings_by_bird_name = {}
     model_name_used = None
 
     for idx, bird in enumerate(birds):
@@ -227,12 +227,12 @@ def precompute_reference_embeddings(birds, project_root, verbose=False):
                     model_name_used = model_name
 
         if bird_embeddings:
-            embeddings_by_bird_id[bird.id] = np.array(bird_embeddings, dtype=np.float32)
+            embeddings_by_bird_name[bird.common_name] = np.array(bird_embeddings, dtype=np.float32)
 
         if verbose and (idx + 1) % 10 == 0:
             print(f"[precompute] embedded {idx + 1}/{len(birds)} birds")
 
-    return embeddings_by_bird_id, model_name_used
+    return embeddings_by_bird_name, model_name_used
 
 
 def _cosine_similarity(a, b):
@@ -398,7 +398,7 @@ def predict_bird(upload_path, birds, project_root, reference_embeddings=None):
 
     if reference_embeddings is not None:
         for bird in birds:
-            bird_embeddings = reference_embeddings.get(bird.id)
+            bird_embeddings = reference_embeddings.get(bird.common_name)
             if bird_embeddings is None or len(bird_embeddings) == 0:
                 continue
 
