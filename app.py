@@ -29,6 +29,7 @@ CORS(app)
 db.init_app(app)
 
 DATASET_PATH = os.path.join(os.path.dirname(__file__), "dataset", "images")
+BIRDS_PATH = os.path.join(os.path.dirname(__file__), "static", "birds")
 PROJECT_ROOT = os.path.dirname(__file__)
 UPLOAD_PATH = os.path.join(PROJECT_ROOT, "static", "uploads")
 ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
@@ -36,11 +37,12 @@ os.makedirs(UPLOAD_PATH, exist_ok=True)
 
 
 def get_bird_image(folder_name):
-    folder = os.path.join(DATASET_PATH, folder_name)
-    if os.path.isdir(folder):
-        images = sorted(glob.glob(os.path.join(folder, "*.jpg")))
-        if images:
-            return f"/bird-image/{folder_name}/{os.path.basename(images[0])}"
+    for base in (BIRDS_PATH, DATASET_PATH):
+        folder = os.path.join(base, folder_name)
+        if os.path.isdir(folder):
+            images = sorted(glob.glob(os.path.join(folder, "*.jpg")))
+            if images:
+                return f"/bird-image/{folder_name}/{os.path.basename(images[0])}"
     return "/static/img/placeholder.svg"
 
 
@@ -65,7 +67,14 @@ def inject_user():
 
 @app.route("/bird-image/<folder>/<filename>")
 def bird_image(folder, filename):
-    return send_from_directory(os.path.join(DATASET_PATH, folder), filename)
+    for base in (BIRDS_PATH, DATASET_PATH):
+        candidate = os.path.join(base, folder)
+        if os.path.isdir(candidate):
+            try:
+                return send_from_directory(candidate, filename)
+            except FileNotFoundError:
+                continue
+    return send_from_directory(os.path.join(app.root_path, "static", "img"), "placeholder.svg")
 
 
 @app.route("/")
@@ -256,12 +265,13 @@ def conservation():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    next_url = request.args.get("next") or url_for("dashboard")
     if request.method == "POST":
         user = User.query.filter_by(email=request.form.get("email", "").lower()).first()
         if user and check_password_hash(user.password_hash, request.form.get("password", "")):
             session["user_id"] = user.id
             flash("Welcome back.")
-            return redirect(url_for("dashboard"))
+            return redirect(next_url)
         flash("Invalid email or password.")
     return render_template("auth.html", mode="login")
 
@@ -328,12 +338,15 @@ def dashboard():
 def favorite(item_type, item_id):
     user = current_user()
     if not user:
-        return redirect(url_for("login"))
+        flash("Please log in to save favorites.")
+        return redirect(url_for("login", next=request.referrer or url_for("dashboard")))
     exists = Favorite.query.filter_by(user_id=user.id, item_type=item_type, item_id=item_id).first()
     if exists:
         db.session.delete(exists)
+        flash("Removed from favorites.")
     else:
         db.session.add(Favorite(user_id=user.id, item_type=item_type, item_id=item_id))
+        flash("Saved to favorites.")
     db.session.commit()
     return redirect(request.referrer or url_for("dashboard"))
 
@@ -342,10 +355,12 @@ def favorite(item_type, item_id):
 def visited(park_id):
     user = current_user()
     if not user:
-        return redirect(url_for("login"))
+        flash("Please log in to track visits.")
+        return redirect(url_for("login", next=request.referrer or url_for("dashboard")))
     if not Visit.query.filter_by(user_id=user.id, park_id=park_id).first():
         db.session.add(Visit(user_id=user.id, park_id=park_id))
         db.session.commit()
+    flash("Park visit tracked.")
     return redirect(request.referrer or url_for("dashboard"))
 
 
@@ -600,7 +615,8 @@ def api_search():
 
 
 def seed_data():
-    # NOTE: unchanged seeding logic from your existing app (kept verbatim style)
+    if Bird.query.count() > 0:
+        return
     habitats_data = [
         ("Savannah", "savannah", "Open grassland and acacia woodland supporting bustards, raptors, starlings, larks, and seasonal migrants.", "Semi-arid to warm, 18-32 C", "Grassland, acacia woodland, seasonal rivers", "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=1200&q=85", "trees"),
         ("Wetland", "wetland", "Lakes, floodplains, papyrus edges, and marshes important for flamingos, pelicans, herons, kingfishers, and migrants.", "Humid margins, 18-30 C", "Floodplains, alkaline lakes, papyrus, reeds", "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200&q=85", "waves"),
