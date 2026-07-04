@@ -7,6 +7,5 @@ __pycache__/
 run.log
 run.stderr.log
 run.stdout.log
-*.cache
 dataset/
 static/uploads/
