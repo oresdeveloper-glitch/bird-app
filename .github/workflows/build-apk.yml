@@ -22,6 +22,9 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
+      - name: Install SDK platform 36
+        run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36"
+
       - name: Write local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > mobile-app/android/local.properties
 
@@ -31,11 +34,41 @@ jobs:
 
       - name: Build APK
         working-directory: mobile-app/android
+        continue-on-error: true
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Read build log
+        if: always()
+        run: |
+          if [ -f mobile-app/android/build.log ]; then
+            tail -80 mobile-app/android/build.log
+          else
+            echo "No build.log found"
+          fi
+
+      - name: Check SDK installation
+        if: always()
+        run: |
+          echo "=== ANDROID_HOME ==="
+          echo "$ANDROID_HOME"
+          echo "=== platforms ==="
+          ls -la $ANDROID_HOME/platforms/ 2>/dev/null || echo "NO PLATFORMS"
+          echo "=== build-tools ==="
+          ls -la $ANDROID_HOME/build-tools/ 2>/dev/null || echo "NO BUILD TOOLS"
+          echo "=== cmdline-tools ==="
+          ls -la $ANDROID_HOME/cmdline-tools/latest/bin/ 2>/dev/null || echo "NO CMDLINE TOOLS"
+
+      - name: Upload build.log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: mobile-app/android/build.log
 
       - uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: birdfinder-apk
           path: mobile-app/android/app/build/outputs/apk/debug/app-debug.apk
