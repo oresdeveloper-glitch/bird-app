@@ -28,30 +28,15 @@ jobs:
       - name: Write local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > mobile-app/android/local.properties
 
+      - uses: gradle/actions/setup-gradle@v4
+
       - name: Install deps
         working-directory: mobile-app
         run: npm ci
 
       - name: Build APK
         working-directory: mobile-app/android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace > $GITHUB_WORKSPACE/build.log 2>&1 || true
-
-      - name: Read build log
-        run: |
-          echo "=== BUILD LOG ==="
-          cat build.log
-          echo "=== APK CHECK ==="
-          ls -la mobile-app/android/app/build/outputs/apk/debug/ 2>/dev/null || echo "APK DIR NOT FOUND"
-          ls -la mobile-app/android/app/build/outputs/apk/ 2>/dev/null || echo "APK DIR NOT FOUND"
-          echo "=== BUILD DIRS ==="
-          find mobile-app/android -name "*.apk" 2>/dev/null || echo "NO APK FOUND"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
+        run: gradle assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
