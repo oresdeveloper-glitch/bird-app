@@ -470,6 +470,10 @@ a {
   gap: 10px;
   font-weight: 800;
   letter-spacing: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .brand-mark,
