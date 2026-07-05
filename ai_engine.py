@@ -434,7 +434,7 @@ def predict_bird(upload_path, birds, project_root, reference_embeddings=None):
 
     best_score, best_bird, _ = all_scores[0]
 
-    if best_score < 0.25:
+    if best_score < 0.35:
         raise ValueError(
             "The image doesn't appear to be a bird. "
             "Please upload a clear photo of a Tanzania bird."

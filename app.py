@@ -60,6 +60,10 @@ def allowed_image(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 
+def _is_ajax():
+    return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+
 @app.context_processor
 def inject_user():
     return {"current_user": current_user()}
@@ -105,9 +109,13 @@ def identify():
     if request.method == "POST":
         upload = request.files.get("bird_image")
         if not upload or not upload.filename:
+            if _is_ajax():
+                return jsonify({"error": "Please choose a bird image to identify."}), 422
             flash("Please choose a bird image to identify.")
             return redirect(url_for("identify"))
         if not allowed_image(upload.filename):
+            if _is_ajax():
+                return jsonify({"error": "Only JPG, PNG, or WEBP images are allowed."}), 422
             flash("Only JPG, PNG, or WEBP images are allowed.")
             return redirect(url_for("identify"))
 
@@ -129,6 +137,8 @@ def identify():
                 reference_embeddings=getattr(app, "reference_embeddings", None),
             )
         except ValueError as exc:
+            if _is_ajax():
+                return jsonify({"error": str(exc)}), 422
             flash(str(exc))
             return redirect(url_for("identify"))
 

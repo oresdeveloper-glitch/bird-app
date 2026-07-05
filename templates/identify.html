@@ -571,16 +571,20 @@
       animateLoadingSteps();
       const xhr = new XMLHttpRequest();
       xhr.open('POST', form.action, true);
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
       xhr.onload = function () {
         if (xhr.status === 200) {
           document.open();
           document.write(xhr.responseText);
           document.close();
-        } else if (xhr.status === 302 || (xhr.status >= 300 && xhr.status < 400)) {
-          window.location.href = xhr.getResponseHeader('Location') || '/identify';
         } else {
           loadingOverlay.style.display = 'none';
-          setError('Server error. Please try again.');
+          try {
+            const data = JSON.parse(xhr.responseText);
+            if (data.error) window.showToast && window.showToast(data.error, 'error');
+          } catch (_) {
+            setError('Server error. Please try again.');
+          }
         }
       };
       xhr.onerror = function () {
