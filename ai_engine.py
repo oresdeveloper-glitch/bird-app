@@ -433,8 +433,10 @@ def predict_bird(upload_path, birds, project_root, reference_embeddings=None):
     all_scores.sort(key=lambda item: item[0], reverse=True)
 
     best_score, best_bird, _ = all_scores[0]
+    second_score = all_scores[1][0] if len(all_scores) > 1 else 0.0
+    margin = best_score / max(second_score, 1e-8)
 
-    if best_score < 0.35:
+    if best_score < 0.20 or (best_score < 0.50 and margin < 1.15):
         raise ValueError(
             "The image doesn't appear to be a bird. "
             "Please upload a clear photo of a Tanzania bird."
