@@ -437,10 +437,7 @@ def predict_bird(upload_path, birds, project_root, reference_embeddings=None):
     margin = best_score / max(second_score, 1e-8)
 
     if best_score < 0.20 or (best_score < 0.50 and margin < 1.15):
-        raise ValueError(
-            "The image doesn't appear to be a bird. "
-            "Please upload a clear photo of a Tanzania bird."
-        )
+        raise ValueError("Unknown Image")
 
     raw_scores = np.array([s for s, _, _ in all_scores], dtype=np.float64)
 
