@@ -11,7 +11,6 @@ start_server.ps1
 dataset/
 static/uploads/
 instance/
-static/birds/
 *.db
 run.log
 run.stderr.log

@@ -2818,8 +2818,8 @@ html.dark .bottom-nav-item:hover svg {
   color: var(--forest);
 }
 
-/* Hide bottom nav on large screens where side nav is primary */
-@media (min-width: 1024px) {
+/* Hide bottom nav only on very wide desktop screens */
+@media (min-width: 1440px) {
   .bottom-nav {
     display: none;
   }
@@ -2832,6 +2832,7 @@ html.dark .bottom-nav-item:hover svg {
 /* --- Body background --- */
 body {
   background: var(--bg);
+  padding-bottom: 68px;
 }
 
 .site-header {
