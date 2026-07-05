@@ -2924,6 +2924,504 @@ html.dark .bottom-nav-item:hover svg {
 }
 
 /* ============================================
+   NATURE THEME ENHANCEMENTS — Public pages
+   ============================================ */
+:root {
+  --nt-deep: #0d281a;
+  --nt-forest: #1b4d3d;
+  --nt-emerald: #2d8a5e;
+  --nt-moss: #7a9a56;
+  --nt-gold: #d4a24e;
+  --nt-amber: #b8843a;
+  --nt-terra: #8b5e3c;
+  --nt-cream: #f8f6f0;
+  --nt-warm: #f0ede4;
+  --nt-shadow: 0 8px 32px rgba(13, 40, 26, 0.10);
+  --nt-shadow-hover: 0 16px 48px rgba(13, 40, 26, 0.18);
+  --nt-glow: 0 0 0 3px rgba(45, 138, 94, 0.12);
+}
+
+/* --- Hero Section --- */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(13,40,26,0.03) 0%, transparent 50%, rgba(122,154,86,0.04) 100%);
+  pointer-events: none;
+}
+
+.hero-copy h1 {
+  position: relative;
+}
+
+.hero-copy h1::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  margin-top: 16px;
+  background: linear-gradient(90deg, var(--nt-emerald), var(--nt-moss));
+  border-radius: 2px;
+}
+
+.hero-panel {
+  border: 1px solid var(--line);
+  transition: box-shadow var(--transition-slow);
+}
+
+.hero-panel:hover {
+  box-shadow: var(--nt-shadow-hover);
+}
+
+.observation-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-left: 3px solid var(--nt-emerald);
+}
+
+.observation-card strong {
+  color: var(--nt-deep);
+}
+
+/* --- Page Hero --- */
+.page-hero {
+  position: relative;
+  background: linear-gradient(135deg, #f8faf6 0%, #f0ede4 50%, #edf2e8 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+.page-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--nt-moss), transparent);
+  opacity: 0.3;
+}
+
+.page-hero h1 {
+  position: relative;
+}
+
+html.dark .page-hero {
+  background: linear-gradient(180deg, #0f1f18 0%, var(--bg) 100%);
+}
+
+/* --- Section Headings --- */
+.section-heading h2 {
+  position: relative;
+  display: inline-block;
+}
+
+.section-heading h2::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 3px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, var(--nt-emerald), transparent);
+  border-radius: 2px;
+}
+
+html.dark .section-heading h2::after {
+  background: linear-gradient(90deg, var(--nt-forest), transparent);
+}
+
+/* --- Enhanced Cards --- */
+.habitat-card,
+.species-card,
+.park-card,
+.article-card {
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.habitat-card::before,
+.species-card::before,
+.park-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--nt-emerald), var(--nt-moss));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.habitat-card:hover::before,
+.species-card:hover::before,
+.park-card:hover::before {
+  opacity: 1;
+}
+
+.habitat-card:hover,
+.species-card:hover,
+.park-card:hover,
+.article-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--nt-shadow-hover);
+  border-color: rgba(45, 138, 94, 0.2);
+}
+
+.species-card img,
+.park-card > a > img,
+.article-card img,
+.habitat-card img {
+  transition: transform 0.4s ease;
+}
+
+.species-card:hover img,
+.park-card:hover img,
+.article-card:hover img,
+.habitat-card:hover img {
+  transform: scale(1.04);
+}
+
+.card-body .status {
+  background: rgba(45, 138, 94, 0.08);
+  color: var(--nt-emerald);
+  font-weight: 700;
+}
+
+/* --- Species Row --- */
+.species-row {
+  transition: all 0.25s ease;
+  border: 1px solid var(--line);
+}
+
+.species-row:hover {
+  transform: translateX(6px);
+  border-color: var(--nt-moss);
+  box-shadow: var(--nt-shadow);
+  background: #fff;
+}
+
+html.dark .species-row:hover {
+  background: var(--card-bg);
+}
+
+/* --- Compact Park Card --- */
+.park-card.compact {
+  transition: all 0.25s ease;
+}
+
+.park-card.compact:hover {
+  transform: translateX(6px);
+  border-color: var(--nt-moss);
+  box-shadow: var(--nt-shadow);
+}
+
+/* --- Buttons --- */
+.button.primary {
+  background: linear-gradient(135deg, var(--nt-forest), var(--nt-emerald));
+  box-shadow: 0 4px 16px rgba(27, 77, 61, 0.25);
+  transition: all 0.25s ease;
+}
+
+.button.primary:hover {
+  background: linear-gradient(135deg, #154232, var(--nt-forest));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(27, 77, 61, 0.35);
+}
+
+.button.secondary {
+  transition: all 0.25s ease;
+}
+
+.button.secondary:hover {
+  border-color: var(--nt-emerald);
+  color: var(--nt-emerald);
+  background: rgba(45, 138, 94, 0.04);
+  transform: translateY(-1px);
+}
+
+/* --- Fact Grid --- */
+.fact-grid div {
+  background: var(--nt-cream);
+  border: 1px solid var(--line);
+  transition: all 0.25s ease;
+}
+
+.fact-grid div:hover {
+  border-color: var(--nt-moss);
+  box-shadow: var(--nt-shadow);
+  transform: translateY(-2px);
+}
+
+html.dark .fact-grid div {
+  background: var(--surface);
+}
+
+.fact-grid svg {
+  color: var(--nt-emerald);
+}
+
+/* --- Detail Hero --- */
+.detail-hero,
+.species-detail {
+  position: relative;
+  background: linear-gradient(135deg, #f8faf6 0%, #fff 100%);
+}
+
+.detail-hero > img,
+.species-detail > img {
+  transition: box-shadow 0.3s ease;
+  box-shadow: var(--nt-shadow);
+}
+
+.detail-hero > img:hover,
+.species-detail > img:hover {
+  box-shadow: var(--nt-shadow-hover);
+}
+
+html.dark .detail-hero,
+html.dark .species-detail {
+  background: linear-gradient(135deg, #0f1f18 0%, var(--bg) 100%);
+}
+
+/* --- Detail Items --- */
+.detail-item {
+  background: var(--nt-cream);
+  border: 1px solid var(--line);
+  transition: all 0.25s ease;
+}
+
+.detail-item:hover {
+  border-color: var(--nt-moss);
+  transform: translateY(-2px);
+}
+
+html.dark .detail-item {
+  background: var(--surface);
+}
+
+/* --- Weather Card --- */
+.weather-card {
+  background: linear-gradient(135deg, var(--sky), rgba(220, 234, 244, 0.5));
+  border: 1px solid var(--line);
+  transition: all 0.25s ease;
+}
+
+.weather-card:hover {
+  border-color: var(--nt-moss);
+  box-shadow: var(--nt-shadow);
+}
+
+html.dark .weather-card {
+  background: linear-gradient(135deg, #142b2a, var(--surface));
+}
+
+/* --- Review Card --- */
+.review-card {
+  border: 1px solid var(--line);
+  transition: all 0.25s ease;
+}
+
+.review-card:hover {
+  border-color: var(--nt-moss);
+  box-shadow: var(--nt-shadow);
+}
+
+/* --- Review Form --- */
+.review-form {
+  border: 1px solid var(--line);
+}
+
+/* --- Search Box --- */
+.search-box input {
+  border: 1px solid var(--line);
+  transition: all 0.2s ease;
+}
+
+.search-box input:focus {
+  border-color: var(--nt-emerald);
+  box-shadow: var(--nt-glow);
+  outline: none;
+}
+
+/* --- Select filters --- */
+.toolbar select {
+  border: 1px solid var(--line);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.toolbar select:focus {
+  border-color: var(--nt-emerald);
+  box-shadow: var(--nt-glow);
+  outline: none;
+}
+
+/* --- Map Sidebar --- */
+.map-sidebar {
+  background: linear-gradient(180deg, #fff, var(--nt-cream));
+  border: 1px solid var(--line);
+  transition: all 0.3s ease;
+}
+
+html.dark .map-sidebar {
+  background: linear-gradient(180deg, var(--card-bg), var(--surface));
+}
+
+.map-sidebar select {
+  border: 1px solid var(--line);
+  transition: all 0.2s ease;
+}
+
+.map-sidebar select:focus {
+  border-color: var(--nt-emerald);
+  box-shadow: var(--nt-glow);
+  outline: none;
+}
+
+/* --- Nearby Panel --- */
+.nearby-panel {
+  background: var(--nt-cream);
+  border: 1px solid var(--line);
+}
+
+html.dark .nearby-panel {
+  background: var(--card-bg);
+}
+
+/* --- Heatmap Legend --- */
+.legend-bar {
+  height: 6px;
+  background: linear-gradient(90deg, #4a90d9, #10b981, #f59e0b, #ef4444);
+  border-radius: 3px;
+  flex: 1;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* --- AI Info Panel --- */
+.ai-info {
+  border: 1px solid var(--line);
+  transition: all 0.3s ease;
+}
+
+.ai-info svg {
+  color: var(--nt-emerald);
+}
+
+/* --- Upload Drop Zone --- */
+.upload-drop {
+  border: 2px dashed var(--line);
+  transition: all 0.25s ease;
+}
+
+.upload-drop:hover,
+.upload-drop.drag-over {
+  border-color: var(--nt-emerald);
+  background: rgba(45, 138, 94, 0.03);
+}
+
+/* --- Upload Tabs --- */
+.upload-tab {
+  transition: all 0.2s ease;
+}
+
+.upload-tab.active {
+  color: var(--nt-emerald);
+  border-bottom-color: var(--nt-emerald);
+}
+
+/* --- Loading Overlay --- */
+.loading-card {
+  background: #fff;
+  box-shadow: var(--nt-shadow-hover);
+  border: 1px solid var(--line);
+}
+
+html.dark .loading-card {
+  background: var(--card-bg);
+}
+
+.loading-step.active {
+  color: var(--nt-emerald);
+}
+
+.loading-step.active::before {
+  background: var(--nt-emerald);
+}
+
+/* --- Badge Variant --- */
+.badge-green {
+  background: rgba(45, 138, 94, 0.08);
+  color: var(--nt-emerald);
+}
+
+/* --- Article Card --- */
+.article-card .status {
+  background: rgba(212, 162, 78, 0.08);
+  color: var(--nt-gold);
+}
+
+/* --- Toolbar / Filter area --- */
+.toolbar {
+  padding-bottom: 8px;
+}
+
+/* --- Auth Card (public) --- */
+.auth-card {
+  border: 1px solid var(--line);
+  transition: all 0.3s ease;
+}
+
+/* --- Index Hero Actions spacing --- */
+.hero-actions {
+  margin-top: 28px;
+}
+
+/* --- Responsive Nature --- */
+@media (max-width: 768px) {
+  .detail-hero,
+  .species-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-hero > img,
+  .species-detail > img {
+    min-height: 320px;
+  }
+
+  .report-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .report-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .map-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
    PREMIUM THEME — Admin & Auth pages
    ============================================ */
 .premium-theme {
