@@ -518,9 +518,16 @@ button:focus-visible {
 
 body {
   margin: 0;
+  padding-bottom: 68px;
   color: var(--ink);
   background: var(--soft);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@media (min-width: 1024px) {
+  body {
+    padding-bottom: 0;
+  }
 }
 
 img {
@@ -2829,5 +2836,89 @@ textarea {
 @media (max-width: 520px) {
   .admin-stats {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   BOTTOM NAVIGATION BAR
+   ============================================ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 68px;
+  padding: 0 env(safe-area-inset-bottom);
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 -4px 20px rgba(24, 38, 31, 0.08);
+}
+
+html.dark .bottom-nav {
+  background: rgba(15, 31, 24, 0.96);
+  border-color: var(--line);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  max-width: 96px;
+  min-height: 56px;
+  padding: 4px 4px;
+  color: var(--muted);
+  border-radius: var(--radius);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: color var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item svg {
+  width: 22px;
+  height: 22px;
+  transition: color var(--transition);
+}
+
+.bottom-nav-item span {
+  line-height: 1;
+}
+
+.bottom-nav-item.active,
+.bottom-nav-item:hover {
+  color: var(--forest);
+}
+
+.bottom-nav-item.active svg,
+.bottom-nav-item:hover svg {
+  color: var(--forest);
+}
+
+html.dark .bottom-nav-item.active,
+html.dark .bottom-nav-item:hover {
+  color: var(--forest);
+}
+
+html.dark .bottom-nav-item.active svg,
+html.dark .bottom-nav-item:hover svg {
+  color: var(--forest);
+}
+
+/* Hide bottom nav on large screens where side nav is primary */
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
   }
 }
