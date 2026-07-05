@@ -7,9 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v=3">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v=4">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   <header class="site-header">
     <a class="brand" href="{{ url_for('index') }}" aria-label="Tanzania Bird Finder home">
       <span class="brand-mark"><i data-lucide="feather"></i></span>
