@@ -755,6 +755,10 @@ def seed_data():
 # Precompute + cache reference embeddings for performance.
 from identify_cache import ReferenceEmbeddingCache, load_reference_cache, save_reference_cache
 
+# Decode base64-embedded embeddings if pkl not present
+from _embeddings_data import decode_embeddings
+decode_embeddings(os.path.join(PROJECT_ROOT, "reference_embeddings.pkl"))
+
 REFERENCE_EMBEDDINGS_VERSION = "v4"
 
 with app.app_context():

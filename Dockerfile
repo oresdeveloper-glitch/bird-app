@@ -12,6 +12,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Decode cached embeddings from base64 text (avoids binary files in git)
+RUN python _embeddings_data.py
+
 EXPOSE 7860
 
 ENV PORT=7860 FLASK_DEBUG=0 TF_CPP_MIN_LOG_LEVEL=2

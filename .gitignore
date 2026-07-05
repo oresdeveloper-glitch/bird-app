@@ -4,7 +4,6 @@ __pycache__/
 venv/
 .env
 *.pkl
-!reference_embeddings.pkl
 *.pkl.tmp
 server.log
 start.bat
@@ -12,6 +11,7 @@ start_server.ps1
 dataset/
 static/uploads/
 instance/
+static/birds/
 *.db
 run.log
 run.stderr.log
