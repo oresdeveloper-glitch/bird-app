@@ -528,7 +528,7 @@ html.dark .dark-toggle svg {
 .menu-button {
   position: fixed;
   top: 16px;
-  right: 16px;
+  left: 16px;
   z-index: 35;
   gap: 9px;
   padding: 0 16px;
