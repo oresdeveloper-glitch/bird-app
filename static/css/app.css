@@ -2167,6 +2167,25 @@ textarea {
   border-radius: 10px;
 }
 
+.camera-start-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #fff;
+  background: rgba(0,0,0,0.55);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: opacity 0.3s;
+  z-index: 2;
+}
+.camera-start-overlay svg { width: 48px; height: 48px; opacity: 0.8; }
+.camera-start-overlay strong { font-size: 1.1rem; }
+.camera-start-overlay.hidden { opacity: 0; pointer-events: none; }
+
 /* --- Review bar --- */
 .review-bar {
   display: flex;

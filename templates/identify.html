@@ -51,15 +51,15 @@
 
         <div id="camera-panel" class="upload-panel">
           <div class="camera-wrapper">
-            <div class="camera-viewport">
+            <div class="camera-viewport" id="camera-viewport">
               <video id="camera-video" autoplay playsinline muted></video>
+              <div class="camera-start-overlay" id="camera-start-overlay">
+                <i data-lucide="camera"></i>
+                <strong>Tap to start camera</strong>
+              </div>
               <div id="camera-error" class="camera-error" role="alert" style="display:none;"></div>
             </div>
             <div class="camera-actions">
-              <button id="start-camera-btn" class="button secondary" type="button">
-                <i data-lucide="video"></i>
-                Start camera
-              </button>
               <button id="capture-btn" class="button primary" type="button" disabled>
                 <i data-lucide="scan-search"></i>
                 Capture
@@ -382,7 +382,6 @@
     const uploadPreviewArea = document.getElementById('upload-preview-area');
     const uploadPreviewImg = document.getElementById('upload-preview-img');
     const uploadDropContent = document.querySelector('.upload-drop-content');
-    const startCameraBtn = document.getElementById('start-camera-btn');
     const stopCameraBtn = document.getElementById('stop-camera-btn');
     const captureBtn = document.getElementById('capture-btn');
     const confirmBtn = document.getElementById('confirm-btn');
@@ -390,6 +389,8 @@
     const fileNameDisplay = document.getElementById('file-name-display');
     const video = document.getElementById('camera-video');
     const cameraError = document.getElementById('camera-error');
+    const cameraOverlay = document.getElementById('camera-start-overlay');
+    const cameraViewport = document.getElementById('camera-viewport');
     const loadingOverlay = document.getElementById('loading-overlay');
     const tabs = document.querySelectorAll('.upload-tab');
     const uploadPanel = document.getElementById('upload-panel');
@@ -397,6 +398,7 @@
 
     let stream = null;
     let selectedFile = null;
+    let _starting = false;
 
     function setError(msg) {
       if (!cameraError) return;
@@ -419,10 +421,6 @@
 
     function setStopEnabled(enabled) {
       stopCameraBtn.disabled = !enabled;
-    }
-
-    function setStartEnabled(enabled) {
-      startCameraBtn.disabled = !enabled;
     }
 
     function updatePreview(file) {
@@ -482,6 +480,7 @@
       if (!ok) {
         setError('Please choose a JPG, PNG, or WEBP image.');
         setConfirmEnabled(false);
+        selectedFile = null;
         fileInput.value = '';
         previewImage.src = '{{ url_for("static", filename="img/placeholder.svg") }}';
         resetUploadZone();
@@ -494,6 +493,11 @@
     fileInput?.addEventListener('change', () => {
       const file = fileInput.files && fileInput.files[0];
       handleFileSelect(file);
+    });
+
+    // Overlay tap starts camera
+    cameraViewport?.addEventListener('click', () => {
+      if (!stream) startCamera();
     });
 
     // Tab switching
@@ -517,37 +521,31 @@
       return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     }
 
-    function applyCameraFallbackUI() {
-      const shouldHide = !isCameraSupported();
-      if (!shouldHide) return;
-      setStartEnabled(true);
-      setStopEnabled(true);
-      setCaptureEnabled(true);
-      if (cameraError) {
-        cameraError.style.display = 'block';
-        cameraError.textContent = 'Camera is not supported on this device/browser. Please use Upload instead.';
-      }
-    }
-
     async function startCamera() {
+      if (_starting || stream) return;
+      _starting = true;
       setError('');
       if (!isCameraSupported()) {
         setError('Camera is not supported on this device/browser. Use upload instead.');
+        _starting = false;
         return;
       }
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
         video.srcObject = stream;
         await video.play();
-        setStartEnabled(false);
+        if (cameraOverlay) cameraOverlay.classList.add('hidden');
         setStopEnabled(true);
         setCaptureEnabled(true);
       } catch (e) {
+        if (cameraOverlay) cameraOverlay.classList.remove('hidden');
         const isHttp = window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
         const msg = isHttp
-          ? 'Camera requires HTTPS on mobile. Access this page via HTTPS (use the address shown in the terminal) or switch to Upload.'
-          : 'Camera permission denied or unavailable. Use Upload instead.';
+          ? 'Camera requires HTTPS on mobile. Access this page via HTTPS or switch to Upload.'
+          : 'Camera permission denied or unavailable. Use upload instead.';
         setError(msg);
+      } finally {
+        _starting = false;
       }
     }
 
@@ -559,14 +557,39 @@
       } finally {
         stream = null;
         if (video) video.srcObject = null;
-        setStartEnabled(false);
+        if (cameraOverlay) cameraOverlay.classList.remove('hidden');
         setStopEnabled(false);
         setCaptureEnabled(false);
-        startCameraBtn.disabled = false;
       }
     }
 
-    startCameraBtn?.addEventListener('click', startCamera);
+    function submitFormWithFile(file) {
+      const formData = new FormData(form);
+      formData.set('bird_image', file, file.name);
+      loadingOverlay.style.display = 'flex';
+      resetLoadingSteps();
+      animateLoadingSteps();
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', form.action, true);
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          document.open();
+          document.write(xhr.responseText);
+          document.close();
+        } else if (xhr.status === 302 || (xhr.status >= 300 && xhr.status < 400)) {
+          window.location.href = xhr.getResponseHeader('Location') || '/identify';
+        } else {
+          loadingOverlay.style.display = 'none';
+          setError('Server error. Please try again.');
+        }
+      };
+      xhr.onerror = function () {
+        loadingOverlay.style.display = 'none';
+        setError('Network error. Please try again.');
+      };
+      xhr.send(formData);
+    }
+
     stopCameraBtn?.addEventListener('click', stopCamera);
 
     function dataURLToFile(dataUrl, filename) {
@@ -640,18 +663,22 @@
     }
 
     confirmBtn?.addEventListener('click', () => {
-      if (!fileInput.files || !fileInput.files.length) {
+      const file = selectedFile || (fileInput.files && fileInput.files[0]);
+      if (!file) {
         setError('Please select or capture a photo first.');
         return;
       }
-      setError('');
-      loadingOverlay.style.display = 'flex';
-      resetLoadingSteps();
-      animateLoadingSteps();
-      setTimeout(() => form.submit(), 500);
+      submitFormWithFile(file);
     });
 
-    applyCameraFallbackUI();
+    if (isCameraSupported()) {
+      // show camera panel by default with tap-to-start overlay
+      tabs.forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-tab="camera"]')?.classList.add('active');
+      cameraPanel.classList.add('active');
+      uploadPanel.classList.remove('active');
+      if (cameraOverlay) cameraOverlay.classList.remove('hidden');
+    }
     setConfirmEnabled(false);
     setCaptureEnabled(false);
     setStopEnabled(false);
