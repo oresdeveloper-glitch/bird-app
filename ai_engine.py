@@ -434,6 +434,12 @@ def predict_bird(upload_path, birds, project_root, reference_embeddings=None):
 
     best_score, best_bird, _ = all_scores[0]
 
+    if best_score < 0.25:
+        raise ValueError(
+            "The image doesn't appear to be a bird. "
+            "Please upload a clear photo of a Tanzania bird."
+        )
+
     raw_scores = np.array([s for s, _, _ in all_scores], dtype=np.float64)
 
     # Min-max normalize to [0, 1] then softmax with temperature
